@@ -2,6 +2,7 @@
 #include <asio.hpp>
 #include <memory>
 #include <map>
+#include <functional>
 
 #include "header.hpp"
 
@@ -53,14 +54,13 @@ private:
 };
 
 class Server {
-    using CallBack = void(std::string);
 
     tcp::acceptor acceptor_;
 public:
-    static std::map<std::string, std::string> get;
-    static std::map<std::string, std::string> post;
-    static std::map<std::string, std::string> del;
-    static std::map<std::string, std::string> update;
+    static std::map<std::string, std::function<void(void)>> get;
+    static std::map<std::string, std::function<void(void)>> post;
+    static std::map<std::string, std::function<void(void)>> del;
+    static std::map<std::string, std::function<void(void)>> update;
 
 public:
     Server(asio::io_context& io_context, int port)
@@ -68,23 +68,24 @@ public:
         do_accept();
     }
 
-    template<class CallBack>
-    static void Get(std::string path, CallBack callback) {
-        get[path] = callback;
+    // Get 함수 선언
+    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
+    static void Get(const std::string path, const T&& callback) {
+        get.emplace(path, std::function<void(void)>(callback));
     }
 
-    template<class CallBack>
-    static void Post(std::string path, CallBack callback) {
+    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
+    static void Post(std::string path, T callback) {
         post[path] = callback;
     }
 
-    template<class CallBack>
-    static void Delete(std::string path, CallBack callback) {
+    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
+    static void Delete(std::string path, T callback) {
         del[path] = callback;
     }
 
-    template<class CallBack>
-    static void Update(std::string path, CallBack callback) {
+    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
+    static void Update(std::string path, T callback) {
         update[path] = callback;
     }
 
@@ -103,7 +104,17 @@ private:
     }
 };
 
+std::map<std::string, std::function<void(void)>> Server::get;
+std::map<std::string, std::function<void(void)>> Server::post;
+std::map<std::string, std::function<void(void)>> Server::update;
+std::map<std::string, std::function<void(void)>> Server::del;
+
 int main() {
+
+    Server::Get("/", []() {
+        std::cout << "hi";
+        });
+
     try {
         asio::io_context io_context;
         Server server(io_context, 12345); // 포트 12345에서 서버 실행
