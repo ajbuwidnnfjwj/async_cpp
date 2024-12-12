@@ -6,10 +6,9 @@
 
 
 enum header {
-	method,
-	path,
-	version,
-	connection_type
+	METHOD,
+	PATH,
+	VERSION
 };
 
 std::vector<std::string> parse(char* data) {
@@ -18,7 +17,9 @@ std::vector<std::string> parse(char* data) {
 
 	std::vector<std::string> h;
 	std::string word;
-	while (stream >> word) {
+
+	for (int i = 0; i < 3; i++) {
+		stream >> word;
 		h.push_back(word);
 	}
 

@@ -5,14 +5,15 @@
 #include <functional>
 
 #include "header.hpp"
+#include "router.hpp"
 
 using asio::ip::tcp;
 
 class Session : public std::enable_shared_from_this<Session> {
 
     tcp::socket socket_;
-    enum { max_length = 1024 };
-    char data_[max_length];
+    enum { MAX_LEN = 1024 };
+    char data_[MAX_LEN];
 
 public:
     explicit Session(tcp::socket socket)
@@ -26,11 +27,11 @@ private:
     void do_read() {
         auto self(shared_from_this());
         socket_.async_read_some(
-            asio::buffer(data_, max_length),
+            asio::buffer(data_, MAX_LEN),
             [this, self](std::error_code ec, std::size_t length) {
                 if (!ec) {
                     std::vector<std::string> v = parse(data_);
-                    std::cout << v[method];
+                    
                 }
                 else {
                     std::cerr << "Read error: " << ec.message() << "\n";
@@ -51,42 +52,38 @@ private:
                 }
             });
     }
+
+    void handle_request(const std::string& method, const std::string& path) {
+        if (method == "GET") {
+            auto behave = router::get[path];
+            behave();
+        }            
+        else if (method == "POST") {
+            auto behave = router::post[path];
+            behave();
+        }
+        else if (method == "UPDATE") {
+            auto behave = router::update[path];
+            behave();
+        }
+        else if (method == "DELETE") {
+            auto behave = router::del[path];
+            behave();
+        }
+        else {
+            //handle err
+        }
+    }
 };
 
 class Server {
 
     tcp::acceptor acceptor_;
-public:
-    static std::map<std::string, std::function<void(void)>> get;
-    static std::map<std::string, std::function<void(void)>> post;
-    static std::map<std::string, std::function<void(void)>> del;
-    static std::map<std::string, std::function<void(void)>> update;
 
 public:
     Server(asio::io_context& io_context, int port)
         : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)) {
         do_accept();
-    }
-
-    // Get 함수 선언
-    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
-    static void Get(const std::string path, const T&& callback) {
-        get.emplace(path, std::function<void(void)>(callback));
-    }
-
-    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
-    static void Post(std::string path, T callback) {
-        post[path] = callback;
-    }
-
-    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
-    static void Delete(std::string path, T callback) {
-        del[path] = callback;
-    }
-
-    template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
-    static void Update(std::string path, T callback) {
-        update[path] = callback;
     }
 
 private:
@@ -104,14 +101,14 @@ private:
     }
 };
 
-std::map<std::string, std::function<void(void)>> Server::get;
-std::map<std::string, std::function<void(void)>> Server::post;
-std::map<std::string, std::function<void(void)>> Server::update;
-std::map<std::string, std::function<void(void)>> Server::del;
+std::map<std::string, std::function<void(void)>> router::get;
+std::map<std::string, std::function<void(void)>> router::post;
+std::map<std::string, std::function<void(void)>> router::del;
+std::map<std::string, std::function<void(void)>> router::update;
 
 int main() {
 
-    Server::Get("/", []() {
+    router::Get("/", []() {
         std::cout << "hi";
         });
 
