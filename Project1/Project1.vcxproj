@@ -148,6 +148,8 @@
   <ItemGroup>
     <ClInclude Include="header.hpp" />
     <ClInclude Include="router.hpp" />
+    <ClInclude Include="server.hpp" />
+    <ClInclude Include="session.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

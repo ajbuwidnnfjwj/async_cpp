@@ -26,5 +26,11 @@
     <ClInclude Include="router.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="server.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="session.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
