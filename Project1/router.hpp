@@ -18,16 +18,16 @@ public:
 
     template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
     void Post(std::string path, T callback) {
-        post[path] = callback;
+        post.emplace(path, std::function<void(void)>(callback));
     }
 
     template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
     void Delete(std::string path, T callback) {
-        del[path] = callback;
+        del.emplace(path, std::function<void(void)>(callback));
     }
 
     template <class T, typename = typename std::enable_if_t<std::is_constructible<std::function<void(void)>, T>::value>>
     void Update(std::string path, T callback) {
-        update[path] = callback;
+        update.emplace(path, std::function<void(void)>(callback));
     }
 };
