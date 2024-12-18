@@ -1,16 +1,22 @@
 #include <iostream>
 #include <asio.hpp>
-#include <memory>
-#include <map>
-#include <functional>
+#include <string>
 
 #include "server.hpp"
+
+extern Router* router;
 
 
 int main() {
 
-    Server::route->Get("/", []() {
-        std::cout << "hi";
+    router->Get("/", []() -> std::string {
+        std::string html = Server::get_html_file("index.html");
+        std::string http_response = "HTTP/1.1 200 OK\r\n";
+        http_response += "Content-Type: text/html\r\n";
+        http_response += "Content-Length: " + std::to_string(html.size()) + "\r\n";
+        http_response += "\r\n";
+        http_response += html;
+        return http_response;
         });
 
     try {
